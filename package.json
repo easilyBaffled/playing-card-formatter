@@ -5,6 +5,8 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
+    "@sindresorhus/is": "0.9.0",
+    "ramda": "0.25.0",
     "react": "16.3.2",
     "react-dom": "16.3.2",
     "react-scripts": "1.1.4"

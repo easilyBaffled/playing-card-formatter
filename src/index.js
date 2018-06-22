@@ -1,5 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import is from "@sindresorhus/is";
+import { reduce, pipe, map, ifElse, identity, flatten } from "ramda";
 
 import "./styles.css";
 
@@ -20,19 +22,37 @@ var addIcons = consumeKIDict({ "([aeiou])": "👍", b: "⚡️" })(
   str => `(${str}) `
 );
 
-const replaceKeywords = (str, [keyword, replacement]) =>
-  console.ident(str.replace(strToConsumingRegex(keyword), replacement));
+const toArray = (val = []) => [].concat(val);
+
+const replaceKeyword = (keyword, replacement) => str =>
+  ifElse(
+    arr => arr.length > 1,
+    splitStr =>
+      splitStr.reduce((acc, part) => [...toArray(acc), replacement, part]),
+    identity
+  )(str.split(keyword));
+
+const replacementReucer = (str, [keyword, replacement]) =>
+  pipe(
+    toArray,
+    map(ifElse(is.string, replaceKeyword(keyword, replacement), identity)),
+    flatten
+  )(str);
 
 const addSyntaxHighlighting = keywordDict => str =>
-  Object.entries(keywordDict).reduce(replaceKeywords, str);
+  Object.entries(keywordDict).reduce(replacementReucer, str);
 
 const highlightKeywords = addSyntaxHighlighting({
-  Swap: `<h1>Swap</h1>`,
-  Move: `<h2>Move</h2>`,
-  Freeze: `<h3>Freeze</h3>`
+  Swap: <h2>Swap</h2>,
+  Move: <h3>Move</h3>,
+  Freeze: <h4>Freeze</h4>
 });
 
 const cardText = `
+Swap and Move and Freeze
+Swaps: move chips and Effects until the end of the current turn
+Moves: move chips and Effects permanently
+Freeze means that the target chip or affect cannot be move, swapped, cleared, affected, or contribute to a matching set
 Swap 2 chips that are at most 2 spaces away from each other
 Swap 2 chips that are at most 3 spaces away from each other
 Swap 2 chips that are at most 4 spaces away from each other
@@ -41,7 +61,6 @@ Swap any two chips on the board
 Move 2 chips that are at most 2 spaces away from each other
 Move 2 chips that are at most 3 spaces away from each other
 Move 2 chips that are at most 4 spaces away from each other
-
 Swap 2 effect
 Move an effect to an adjacent space
 Move an effect to a space at most 2 spaces away
