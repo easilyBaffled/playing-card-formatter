@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import is from "@sindresorhus/is";
 import { reduce, pipe, map, ifElse, identity, flatten } from "ramda";
+import { re } from "re-template-tag";
 
 import "./styles.css";
 
@@ -28,7 +29,11 @@ const replaceKeyword = (keyword, replacement) => str =>
   ifElse(
     arr => arr.length > 1,
     splitStr =>
-      splitStr.reduce((acc, part) => [...toArray(acc), replacement, part]),
+      splitStr.reduce((acc, part) =>
+        toArray(acc)
+          .concat(replacement)
+          .concat(part)
+      ),
     identity
   )(str.split(keyword));
 
@@ -43,16 +48,18 @@ const addSyntaxHighlighting = keywordDict => str =>
   Object.entries(keywordDict).reduce(replacementReucer, str);
 
 const highlightKeywords = addSyntaxHighlighting({
-  Swap: <h2>Swap</h2>,
-  Move: <h3>Move</h3>,
-  Freeze: <h4>Freeze</h4>
+  Swap: <span className="keyword swap">Swap</span>,
+  Move: <span className="keyword move">Move</span>,
+  Freeze: <span className="keyword freeze">Freeze</span>,
+  swap: <span className="keyword swap">swap</span>,
+  move: <span className="keyword move">move</span>,
+  freeze: <span className="keyword freeze">freeze</span>,
+  "this chip": <span className="target this">this chip</span>,
+  "adjacent chips": <span className="target adjacent ">adjacent chips</span>
+  // "(d+)": <span className="keyword freeze">Freeze</span>
 });
 
 const cardText = `
-Swap and Move and Freeze
-Swaps: move chips and Effects until the end of the current turn
-Moves: move chips and Effects permanently
-Freeze means that the target chip or affect cannot be move, swapped, cleared, affected, or contribute to a matching set
 Swap 2 chips that are at most 2 spaces away from each other
 Swap 2 chips that are at most 3 spaces away from each other
 Swap 2 chips that are at most 4 spaces away from each other
@@ -94,7 +101,8 @@ var convertToCards = cardText =>
     .trim()
     .split("\n")
     .filter(v => v)
-    .map(highlightKeywords);
+    .map(highlightKeywords)
+    .map(arr => <p className="card-body">{arr}</p>);
 
 // convertToCards(str)
 
